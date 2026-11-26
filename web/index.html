@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>iPhone 7 遠隔操作・音声連携コンソール</title>
+  <style>
+    body { font-family: system-ui, sans-serif; margin: 16px; background: #111318; color: #f3f4f6; }
+    .row { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; margin-bottom: 12px; }
+    input, select, button { padding: 8px 12px; border-radius: 8px; border: 1px solid #374151; background: #1f2937; color: #fff; }
+    button { cursor: pointer; background: #2563eb; border-color: #3b82f6; }
+    .panel { background: #181c24; border: 1px solid #2a3140; border-radius: 12px; padding: 14px; margin-bottom: 14px; }
+    #screenWrap { display: none; margin-top: 10px; }
+    #screenWrap.visible { display: block; }
+    #remoteCanvas { width: 360px; max-width: 100%; aspect-ratio: 9 / 16; background: #000; border: 2px solid #4b5563; border-radius: 16px; touch-action: none; display: block; }
+    #logBox { background: #0d1015; padding: 10px; border-radius: 8px; height: 180px; overflow-y: auto; font-family: monospace; font-size: 13px; white-space: pre-wrap; }
+  </style>
+</head>
+<body>
+  <h2>iPhone 7 遠隔操作・音声入出力コンソール</h2>
+
+  <div class="panel">
+    <div class="row">
+      <label>Relay URL: <input id="relayUrl" type="text" size="42" value="https://soni08.website/remote/relay.php" /></label>
+      <label>Device ID: <input id="deviceId" type="text" size="16" value="iphone7-main" /></label>
+      <label>Token: <input id="token" type="password" size="16" value="change-me-token" /></label>
+    </div>
+    <div class="row">
+      <button id="btnToggleScreen">画面表示：切替</button>
+      <button id="btnVoiceIn">アクセス元マイクで音声入力</button>
+      <button id="btnSpeakTest">アクセス元スピーカーで音声出力</button>
+    </div>
+    <div class="row">
+      <input id="cmdInput" type="text" size="38" placeholder="例: AIと話したい / Amazonで〇〇を注文 / 音楽を再生" />
+      <button id="btnSendCmd">コマンド送信</button>
+    </div>
+  </div>
+
+  <div id="screenWrap" class="panel">
+    <strong>画面ビュー（マウスパッド・キーボード操作送信）</strong>
+    <canvas id="remoteCanvas" width="360" height="640" tabindex="0"></canvas>
+  </div>
+
+  <div class="panel">
+    <strong>通信・音声ログ</strong>
+    <div id="logBox"></div>
+  </div>
+
+  <script>
+    const logBox = document.getElementById("logBox");
+    const screenWrap = document.getElementById("screenWrap");
+    const canvas = document.getElementById("remoteCanvas");
+    let screenVisible = false;
+
+    function appendLog(msg) {
+      const ts = new Date().toLocaleTimeString();
+      logBox.textContent += `[${ts}] ${msg}\n`;
+      logBox.scrollTop = logBox.scrollHeight;
+    }
+
+    function speakOnClient(text) {
+      if (!text || !("speechSynthesis" in window)) return;
+      window.speechSynthesis.cancel();
+      const utter = new SpeechSynthesisUtterance(text);
+      utter.lang = "ja-JP";
+      window.speechSynthesis.speak(utter);
+    }
+
+    async function sendEvent(payload) {
+      const url = document.getElementById("relayUrl").value.trim();
+      const deviceId = document.getElementById("deviceId").value.trim();
+      const token = document.getElementById("token").value.trim();
+      try {
+        const res = await fetch(url, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ role: "controller", device_id: deviceId, token, ...payload })
+        });
+        const data = await res.json();
+        if (data.status_message) {
+          appendLog(data.status_message);
+          speakOnClient(data.status_message);
+        }
+      } catch (err) {
+        appendLog("送信エラー: " + err.message);
+      }
+    }
+
+    document.getElementById("btnToggleScreen").addEventListener("click", () => {
+      screenVisible = !screenVisible;
+      screenWrap.classList.toggle("visible", screenVisible);
+      appendLog(screenVisible ? "画面ビューを表示しました" : "画面ビューを非表示にしました");
+    });
+
+    document.getElementById("btnSendCmd").addEventListener("click", () => {
+      const text = document.getElementById("cmdInput").value.trim();
+      if (!text) return;
+      sendEvent({ type: "voice_command", text });
+    });
+
+    document.getElementById("btnSpeakTest").addEventListener("click", () => {
+      speakOnClient("アクセス元のデバイスから音声出力をテストしています。");
+    });
+
+    document.getElementById("btnVoiceIn").addEventListener("click", () => {
+      const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
+      if (!SpeechRec) {
+        appendLog("ブラウザの音声認識に非対応です");
+        return;
+      }
+      const rec = new SpeechRec();
+      rec.lang = "ja-JP";
+      rec.onresult = (ev) => {
+        const transcript = ev.results[0][0].transcript;
+        document.getElementById("cmdInput").value = transcript;
+        sendEvent({ type: "voice_command", text: transcript });
+      };
+      rec.start();
+    });
+
+    canvas.addEventListener("pointerdown", (e) => {
+      canvas.focus();
+      const rect = canvas.getBoundingClientRect();
+      const nx = (e.clientX - rect.left) / rect.width;
+      const ny = (e.clientY - rect.top) / rect.height;
+      sendEvent({ type: "pointer_tap", nx, ny });
+    });
+
+    canvas.addEventListener("keydown", (e) => {
+      e.preventDefault();
+      sendEvent({ type: "keyboard_input", key: e.key, code: e.code });
+    });
+  </script>
+</body>
+</html>

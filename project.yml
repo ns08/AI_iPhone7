@@ -1,0 +1,29 @@
+name: iPhone7WebRemote
+options:
+  bundleIdPrefix: com.soni08
+  deploymentTarget:
+    iOS: "15.0"
+targets:
+  iPhone7WebRemote:
+    type: application
+    platform: iOS
+    sources:
+      - path: ios
+    info:
+      path: ios/Info.plist
+      properties:
+        CFBundleDisplayName: iPhone7WebRemote
+        UILaunchScreen: {}
+        NSMicrophoneUsageDescription: 音声コマンド認識のためにマイクを使用します。
+        NSSpeechRecognitionUsageDescription: 音声指示のテキスト変換のために音声認識を使用します。
+        NSContactsUsageDescription: 連絡先検索と電話発信のために連絡先を使用します。
+        NSAppleMusicUsageDescription: 本体内の音楽を再生するためにメディアライブラリを使用します。
+        LSApplicationQueriesSchemes:
+          - com.amazon.mobile.shopping
+          - shortcuts
+          - line
+          - msteams
+          - tel
+        UIBackgroundModes:
+          - audio
+          - fetch

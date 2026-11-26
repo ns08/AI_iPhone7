@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>CFBundleDevelopmentRegion</key>
+    <string>ja_JP</string>
+    <key>CFBundleDisplayName</key>
+    <string>iPhone7WebRemote</string>
+    <key>CFBundleExecutable</key>
+    <string>$(EXECUTABLE_NAME)</string>
+    <key>CFBundleIdentifier</key>
+    <string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
+    <key>CFBundleInfoDictionaryVersion</key>
+    <string>6.0</string>
+    <key>CFBundleName</key>
+    <string>$(PRODUCT_NAME)</string>
+    <key>CFBundlePackageType</key>
+    <string>APPL</string>
+    <key>CFBundleShortVersionString</key>
+    <string>1.0</string>
+    <key>CFBundleVersion</key>
+    <string>1</string>
+    <key>LSRequiresIPhoneOS</key>
+    <true/>
+    <key>NSMicrophoneUsageDescription</key>
+    <string>音声コマンド認識のためにマイクを使用します。</string>
+    <key>NSSpeechRecognitionUsageDescription</key>
+    <string>音声指示のテキスト変換のために音声認識を使用します。</string>
+    <key>NSContactsUsageDescription</key>
+    <string>連絡先検索と電話発信のために連絡先を使用します。</string>
+    <key>NSAppleMusicUsageDescription</key>
+    <string>本体内の音楽を再生するためにメディアライブラリを使用します。</string>
+    <key>LSApplicationQueriesSchemes</key>
+    <array>
+        <string>com.amazon.mobile.shopping</string>
+        <string>shortcuts</string>
+        <string>line</string>
+        <string>msteams</string>
+        <string>tel</string>
+    </array>
+    <key>UIBackgroundModes</key>
+    <array>
+        <string>audio</string>
+        <string>fetch</string>
+    </array>
+    <key>UIApplicationSceneManifest</key>
+    <dict>
+        <key>UIApplicationSupportsMultipleScenes</key>
+        <false/>
+    </dict>
+    <key>UILaunchScreen</key>
+    <dict/>
+</dict>
+</plist>
