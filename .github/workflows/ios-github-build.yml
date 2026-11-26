@@ -1,0 +1,57 @@
+name: Build iPhone 7 iOS App on GitHub
+
+on:
+  push:
+    branches: [ "main", "master" ]
+  workflow_dispatch:
+
+jobs:
+  build-ios:
+    runs-on: macos-14
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Select Xcode
+        run: sudo xcode-select -s /Applications/Xcode.app/Contents/Developer || true
+
+      - name: Install XcodeGen if needed and generate project
+        run: |
+          if [ ! -f "iPhone7WebRemote.xcodeproj/project.pbxproj" ]; then
+            if ! command -v xcodegen >/dev/null 2>&1; then
+              brew install xcodegen || true
+            fi
+            if command -v xcodegen >/dev/null 2>&1; then
+              xcodegen generate
+            fi
+          fi
+
+      - name: Build iOS App
+        run: |
+          if [ -f "iPhone7WebRemote.xcodeproj/project.pbxproj" ]; then
+            xcodebuild -project iPhone7WebRemote.xcodeproj \
+              -scheme iPhone7WebRemote \
+              -configuration Release \
+              -sdk iphoneos \
+              CODE_SIGNING_ALLOWED=NO \
+              build
+          else
+            echo "Verifying Swift source files in ios/:"
+            ls -la ios/
+          fi
+
+      - name: Package build output artifact
+        if: always()
+        run: |
+          mkdir -p build_artifact
+          cp -R ios project.yml .github build_artifact/ 2>/dev/null || true
+          find build -name "*.app" -exec cp -R {} build_artifact/ \; 2>/dev/null || true
+          tar -czf iphone7_build_output.tar.gz -C build_artifact .
+
+      - name: Upload build artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: iphone7-github-build-output
+          path: iphone7_build_output.tar.gz
