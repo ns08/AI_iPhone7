@@ -34,7 +34,10 @@ jobs:
               -scheme iPhone7WebRemote \
               -configuration Release \
               -sdk iphoneos \
+              -derivedDataPath build/DerivedData \
               CODE_SIGNING_ALLOWED=NO \
+              CODE_SIGNING_REQUIRED=NO \
+              IPHONEOS_DEPLOYMENT_TARGET=15.0 \
               build
           else
             echo "Verifying Swift source files in ios/:"
